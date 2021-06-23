@@ -22,16 +22,29 @@ func optionsRepr(prompt string, options []interface{}, index int, clear bool) {
 		Writer.Cursor.Clear()
 	}
 }
+func finalOption(prompt string, options []interface{}, choice interface{}) {
+	Writer.Cursor.Up(len(options) + 1).ClearToEndOfScreen()
+	formatPrompt()
+	fmt.Fprintf(Writer, "%s ", prompt)
+	formatSelection()
+	fmt.Fprintln(Writer, choice)
+	Writer.Cursor.Clear()
+}
 
 type BoolQuestion struct {
 	called      bool
 	index       int
 	Prompt      string
 	Destination *bool
-	Func        func()
+	OnComplete  func()
 }
 
 func (b *BoolQuestion) Init() {}
+
+func (b *BoolQuestion) FinalRepr() {
+	choices := []interface{}{"True", "False"}
+	finalOption(b.Prompt, []interface{}{"True", "False"}, choices[b.index])
+}
 
 func (b *BoolQuestion) Repr() {
 	optionsRepr(b.Prompt, []interface{}{"True", "False"}, b.index, b.called)
@@ -44,7 +57,7 @@ func (b *BoolQuestion) HandleInput(input []byte) (bool, error) {
 	switch {
 	case isEnter(input):
 		*b.Destination = b.index == 0
-		if f := b.Func; f != nil {
+		if f := b.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
@@ -60,7 +73,15 @@ type StringOptionQuestion struct {
 	Prompt      string
 	Options     []string
 	Destination *string
-	Func        func()
+	OnComplete  func()
+}
+
+func (o *StringOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalOption(o.Prompt, opt, o.Options[o.index])
 }
 
 func (o *StringOptionQuestion) Init() {}
@@ -80,7 +101,7 @@ func (o *StringOptionQuestion) HandleInput(input []byte) (bool, error) {
 	switch {
 	case isEnter(input):
 		*o.Destination = o.Options[o.index]
-		if f := o.Func; f != nil {
+		if f := o.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
@@ -98,7 +119,15 @@ type IntOptionQuestion struct {
 	Prompt      string
 	Options     []int
 	Destination *int
-	Func        func()
+	OnComplete  func()
+}
+
+func (o *IntOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalOption(o.Prompt, opt, o.Options[o.index])
 }
 
 func (o *IntOptionQuestion) Init() {}
@@ -118,7 +147,7 @@ func (o *IntOptionQuestion) HandleInput(input []byte) (bool, error) {
 	switch {
 	case isEnter(input):
 		*o.Destination = o.Options[o.index]
-		if f := o.Func; f != nil {
+		if f := o.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
@@ -136,7 +165,15 @@ type FloatOptionQuestion struct {
 	Prompt      string
 	Options     []float64
 	Destination *float64
-	Func        func()
+	OnComplete  func()
+}
+
+func (o *FloatOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalOption(o.Prompt, opt, o.Options[o.index])
 }
 
 func (o *FloatOptionQuestion) Init() {}
@@ -156,7 +193,7 @@ func (o *FloatOptionQuestion) HandleInput(input []byte) (bool, error) {
 	switch {
 	case isEnter(input):
 		*o.Destination = o.Options[o.index]
-		if f := o.Func; f != nil {
+		if f := o.OnComplete; f != nil {
 			f()
 		}
 		return true, nil

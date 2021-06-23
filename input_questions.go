@@ -18,6 +18,20 @@ func inputPrompt(called bool, prompt string, val strings.Builder, def interface{
 	}
 	fmt.Fprint(Writer, val.String())
 }
+func finalInput(prompt string, val strings.Builder, def interface{}) {
+	Writer.Cursor.Up(1).ToCol(0).ClearToEndOfScreen()
+	var v interface{}
+	if val.Len() == 0 {
+		v = def
+	} else {
+		v = val.String()
+	}
+	formatPrompt()
+	fmt.Fprint(Writer, prompt, " ")
+	formatSelection()
+	fmt.Fprintln(Writer, v)
+	Writer.Cursor.Clear()
+}
 
 type IntInputQuestion struct {
 	called      bool
@@ -25,7 +39,11 @@ type IntInputQuestion struct {
 	Prompt      string
 	Destination *int
 	Default     int
-	Func        func()
+	OnComplete  func()
+}
+
+func (i *IntInputQuestion) FinalRepr() {
+	finalInput(i.Prompt, i.val, i.Default)
 }
 
 func (i *IntInputQuestion) Init() {
@@ -54,10 +72,16 @@ func (i *IntInputQuestion) HandleInput(input []byte) (bool, error) {
 		} else {
 			*i.Destination = i.Default
 		}
-		if f := i.Func; f != nil {
+		if f := i.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
+	case isBackspace(input):
+		{
+			v := i.val.String()[:i.val.Len()-1]
+			i.val.Reset()
+			i.val.WriteString(v)
+		}
 	case !isEscapeSequence(input[:2]):
 		i.val.Write(reduceInput(input))
 	}
@@ -70,7 +94,11 @@ type FloatInputQuestion struct {
 	Prompt      string
 	Destination *float64
 	Default     float64
-	Func        func()
+	OnComplete  func()
+}
+
+func (f *FloatInputQuestion) FinalRepr() {
+	finalInput(f.Prompt, f.val, f.Default)
 }
 
 func (f *FloatInputQuestion) Init() {
@@ -99,10 +127,16 @@ func (f *FloatInputQuestion) HandleInput(input []byte) (bool, error) {
 		} else {
 			*f.Destination = f.Default
 		}
-		if f := f.Func; f != nil {
+		if f := f.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
+	case isBackspace(input):
+		{
+			v := f.val.String()[:f.val.Len()-1]
+			f.val.Reset()
+			f.val.WriteString(v)
+		}
 	case !isEscapeSequence(input[:2]):
 		f.val.Write(reduceInput(input))
 	}
@@ -115,7 +149,11 @@ type StringInputQuestion struct {
 	Prompt      string
 	Destination *string
 	Default     string
-	Func        func()
+	OnComplete  func()
+}
+
+func (s *StringInputQuestion) FinalRepr() {
+	finalInput(s.Prompt, s.val, s.Default)
 }
 
 func (s *StringInputQuestion) Init() {
@@ -140,10 +178,16 @@ func (s *StringInputQuestion) HandleInput(input []byte) (bool, error) {
 		} else {
 			*s.Destination = s.Default
 		}
-		if f := s.Func; f != nil {
+		if f := s.OnComplete; f != nil {
 			f()
 		}
 		return true, nil
+	case isBackspace(input):
+		{
+			v := s.val.String()[:s.val.Len()-1]
+			s.val.Reset()
+			s.val.WriteString(v)
+		}
 	case !isEscapeSequence(input[:2]):
 		s.val.Write(reduceInput(input))
 	}

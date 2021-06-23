@@ -33,7 +33,6 @@ func isEscapeSequence(b []byte) bool {
 	}
 	return b[0] == 27 && b[1] == 91
 }
-
 func isUpArrow(b []byte) bool {
 	return isEscapeSequence(b[:2]) && b[2] == 65
 }
@@ -43,10 +42,12 @@ func isDownArrow(b []byte) bool {
 func isSpace(b []byte) bool {
 	return b[0] == 32
 }
+func isBackspace(b []byte) bool {
+	return b[0] == 8 || b[0] == 127
+}
 func isEnter(b []byte) bool {
 	return b[0] == 10
 }
-
 func reduceInput(b []byte) []byte {
 	r := make([]byte, 0)
 	for _, _b := range b {

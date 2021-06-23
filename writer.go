@@ -16,4 +16,3 @@ var Writer = writer{
 	Writer: os.Stderr,
 	Cursor: cursor.New(os.Stderr),
 }
-

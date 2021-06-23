@@ -24,6 +24,26 @@ func multiOptionsRepr(prompt string, options []interface{}, index int, selected 
 		Writer.Cursor.Clear()
 	}
 }
+func finalMultiOption(prompt string, options []interface{}, selected map[int]bool) {
+	Writer.Cursor.Up(len(options) + 1).ClearToEndOfScreen()
+	formatPrompt()
+	fmt.Fprintf(Writer, "%s ", prompt)
+	formatSelection()
+	printed := false
+	for i, b := range selected {
+		var separator string
+		if b {
+			if printed {
+				separator = ", "
+			} else {
+				printed = true
+			}
+			fmt.Fprintf(Writer, "%s%s", separator, options[i])
+		}
+	}
+	fmt.Fprintln(Writer, "")
+	Writer.Cursor.Clear()
+}
 
 type StringMultiOptionQuestion struct {
 	called      bool
@@ -33,6 +53,14 @@ type StringMultiOptionQuestion struct {
 	Options     []string
 	Destination *[]string
 	OnComplete  func()
+}
+
+func (o *StringMultiOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalMultiOption(o.Prompt, opt, o.selected)
 }
 
 func (o *StringMultiOptionQuestion) Init() {
@@ -87,6 +115,14 @@ type IntMultiOptionQuestion struct {
 	OnComplete  func()
 }
 
+func (o *IntMultiOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalMultiOption(o.Prompt, opt, o.selected)
+}
+
 func (o *IntMultiOptionQuestion) Init() {
 	o.selected = make(map[int]bool)
 	for i := range o.Options {
@@ -137,6 +173,14 @@ type FloatMultiOptionQuestion struct {
 	Options     []float64
 	Destination *[]float64
 	OnComplete  func()
+}
+
+func (o *FloatMultiOptionQuestion) FinalRepr() {
+	opt := make([]interface{}, len(o.Options))
+	for i, option := range o.Options {
+		opt[i] = option
+	}
+	finalMultiOption(o.Prompt, opt, o.selected)
 }
 
 func (o *FloatMultiOptionQuestion) Init() {
